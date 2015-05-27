@@ -1,6 +1,7 @@
 package com.test.battlegrid;
 
 import android.content.ClipData;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -12,9 +13,12 @@ import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.DragEvent;
+import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.GridLayout;
 import android.widget.ImageView;
 
 import java.net.URI;
@@ -31,10 +35,54 @@ public class Main extends ActionBarActivity {
         findViewById(R.id.ball1).setOnDragListener(listenDrag);
         findViewById(R.id.target1).setOnLongClickListener(listenClick);
         findViewById(R.id.target1).setOnDragListener(listenDrag);
-        findViewById(R.id.target2).setOnDragListener(listenDrag);
-        findViewById(R.id.target2).setOnLongClickListener(listenClick);
-        findViewById(R.id.target3).setOnDragListener(listenDrag);
-        findViewById(R.id.target3).setOnLongClickListener(listenClick);
+
+        GridLayout gridLayout = (GridLayout)findViewById(R.id.grid1);
+
+        gridLayout.removeAllViews();
+
+        int total = 45;
+        int column = 9;
+        int row = total / column;
+        gridLayout.setColumnCount(column);
+        gridLayout.setRowCount(row + 1);
+
+        for(int i =0, c = 0, r = 0; i < total; i++, c++)
+        {
+            if(c == column)
+            {
+                c = 0;
+                r++;
+            }
+            ImageView oImageView = new ImageView(this);
+            if(i==1) {
+                oImageView.setImageResource(R.drawable.circle);
+            } else if(i== 15) {
+                oImageView.setImageResource(R.drawable.blue_circle);
+            } else if(i== 27) {
+                oImageView.setImageResource(R.drawable.yellow_circle);
+            } else if(i== 43) {
+                oImageView.setImageResource(R.drawable.green_circle);
+            } else {
+                oImageView.setImageResource(R.drawable.target);
+            }
+
+            GridLayout.LayoutParams param =new GridLayout.LayoutParams();
+            //param.height = GridLayout.LayoutParams.WRAP_CONTENT;
+            //param.width = GridLayout.LayoutParams.WRAP_CONTENT;
+            param.rightMargin = 18;
+            param.leftMargin = 15;
+            param.topMargin = 5;
+            param.setGravity(Gravity.CENTER);
+            param.columnSpec = GridLayout.spec(c);
+            param.rowSpec = GridLayout.spec(r);
+
+            oImageView.setLayoutParams(param);
+
+            oImageView.setOnLongClickListener(listenClick);
+            oImageView.setOnDragListener(listenDrag);
+
+            gridLayout.addView(oImageView);
+        }
 
     }
 
@@ -129,21 +177,17 @@ public class Main extends ActionBarActivity {
                     break;
 
                 case DragEvent.ACTION_DROP:
-                    ImageView target = (ImageView) v;
+                ImageView target = (ImageView) v;
 
-                    ImageView dragged = (ImageView) event.getLocalState();
+                ImageView dragged = (ImageView) event.getLocalState();
 
-                    Drawable target_draw = target.getDrawable();
-                    Drawable dragged_draw = dragged.getDrawable();
+                Drawable target_draw = target.getDrawable();
+                Drawable dragged_draw = dragged.getDrawable();
 
-                    dragged.setImageDrawable(target_draw);
+                dragged.setImageDrawable(target_draw);
+                target.setImageDrawable(dragged_draw);
 
-                    //target.setImageURI((Uri) event.getLocalState());
-                    target.setImageDrawable(dragged_draw);
-
-
-
-                    break;
+                break;
 
             }
 
