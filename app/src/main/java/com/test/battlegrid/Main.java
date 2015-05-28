@@ -20,7 +20,9 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.GridLayout;
 import android.widget.ImageView;
+import android.widget.Toast;
 
+import java.io.Writer;
 import java.net.URI;
 
 
@@ -77,6 +79,7 @@ public class Main extends ActionBarActivity {
             param.rowSpec = GridLayout.spec(r);
 
             oImageView.setLayoutParams(param);
+            oImageView.setId(i);
 
             oImageView.setOnLongClickListener(listenClick);
             oImageView.setOnDragListener(listenDrag);
@@ -177,17 +180,25 @@ public class Main extends ActionBarActivity {
                     break;
 
                 case DragEvent.ACTION_DROP:
-                ImageView target = (ImageView) v;
+                    ImageView target = (ImageView) v;
 
-                ImageView dragged = (ImageView) event.getLocalState();
+                    ImageView dragged = (ImageView) event.getLocalState();
 
-                Drawable target_draw = target.getDrawable();
-                Drawable dragged_draw = dragged.getDrawable();
+                    Drawable target_draw = target.getDrawable();
+                    Drawable dragged_draw = dragged.getDrawable();
 
-                dragged.setImageDrawable(target_draw);
-                target.setImageDrawable(dragged_draw);
+                    int id1 = target.getId();
+                    int id2 = dragged.getId();
+                    String ids = "From "+ id2 + " to " + id1;
 
-                break;
+                    Toast.makeText(getBaseContext(), ids, Toast.LENGTH_SHORT).show();
+
+
+
+                    dragged.setImageDrawable(target_draw);
+                    target.setImageDrawable(dragged_draw);
+
+                    break;
 
             }
 
