@@ -9,27 +9,4 @@
     android:layout_gravity="center"
     android:background="@drawable/blank_grid2"
     android:id="@+id/grid1" >
-
-
-    <ImageView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:src="@drawable/circle"
-        android:paddingLeft="@dimen/target"
-        android:paddingRight="@dimen/target"
-        android:contentDescription="@string/ball"
-        android:layout_row="4"
-        android:layout_column="5"
-        android:id="@+id/ball1" />
-
-    <ImageView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:src="@drawable/target"
-        android:paddingLeft="@dimen/target"
-        android:paddingRight="@dimen/target"
-        android:layout_column="0"
-        android:layout_row="0"
-        android:id="@+id/target1" />
-
 </GridLayout>

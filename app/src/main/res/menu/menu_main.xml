@@ -3,4 +3,12 @@
     xmlns:tools="http://schemas.android.com/tools" tools:context=".Main">
     <item android:id="@+id/action_settings" android:title="@string/action_settings"
         android:orderInCategory="100" app:showAsAction="never"/>
+
+    <item android:id="@+id/checkBox" android:title="@string/server"
+        android:orderInCategory="101" app:showAsAction="always"
+        android:checkable="true" android:checked="false" />
+    <item android:id="@+id/button" android:title="@string/button_connect"
+        android:orderInCategory="102" app:showAsAction="always"/>
+
+
 </menu>

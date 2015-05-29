@@ -8,4 +8,6 @@
     <string name="ball">Ball</string>
     <string name="title_activity_settings">settings</string>
     <string name="button_connect">Connect</string>
+    <string name="server">Server?</string>
+    <string name="server_default_msg">Enter server IP here eg. 192.168.0.1</string>
 </resources>

@@ -11,6 +11,11 @@
     <uses-permission
         android:required="true"
         android:name="android.permission.INTERNET"/>
+    <uses-permission
+        android:required="true"
+        android:name="android.permission.ACCESS_NETWORK_STATE" >
+    </uses-permission>
+
 
     <application
         android:allowBackup="true"
@@ -25,10 +30,6 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity>
-        <activity
-            android:name=".settings"
-            android:label="@string/title_activity_settings" >
         </activity>
     </application>
 
