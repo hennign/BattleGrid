@@ -1,6 +1,7 @@
 package com.test.battlegrid;
 
 
+
 import android.app.Dialog;
 import android.content.ClipData;
 import android.graphics.Canvas;
@@ -9,9 +10,8 @@ import android.graphics.Point;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Handler;
-import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
-import android.support.v7.internal.view.menu.ActionMenuItemView;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.DragEvent;
 import android.view.Gravity;
@@ -19,7 +19,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
-import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.GridLayout;
 import android.widget.ImageView;
@@ -28,25 +27,35 @@ import android.widget.Toast;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.StringTokenizer;
+import java.net.UnknownHostException;
 
 
-public class Main extends ActionBarActivity {
+public class Main extends AppCompatActivity {
 
     private ImageView[] targets = new ImageView[45];
 
     public boolean is_server = false;
+    public boolean is_client = false;
 
     private ServerSocket serverSocket;
+
+    private Socket clientSocket;
 
     Handler updateConversationHandler;
 
     Thread serverThread = null;
 
+    Thread clientThread = null;
+
     Dialog dialog;
 
     public static final int SERVER_PORT = 6000;
+
+    public String server_ip = "default";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -108,10 +117,30 @@ public class Main extends ActionBarActivity {
 
     }
 
+    class ClientThread implements Runnable {
+
+        @Override
+        public void run() {
+
+            try {
+                InetAddress serverAddr = InetAddress.getByName(server_ip);
+
+                clientSocket = new Socket(serverAddr, SERVER_PORT);
+
+            } catch (UnknownHostException e1) {
+                e1.printStackTrace();
+            } catch (IOException e1) {
+                e1.printStackTrace();
+            }
+
+        }
+
+    }
+
     class ServerThread implements Runnable {
 
         public void run() {
-            Socket socket = null;
+            Socket socket;
             try {
                 serverSocket = new ServerSocket(SERVER_PORT);
             } catch (IOException e) {
@@ -188,8 +217,15 @@ public class Main extends ActionBarActivity {
     View.OnClickListener connector = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-            EditText ip = (EditText) dialog.findViewById(R.id.tv);
-            Log.i("TEST", "Connect button clicked with value " + ip.getText().toString());
+            server_ip = ((EditText) dialog.findViewById(R.id.tv)).getText().toString();
+            Log.i("TEST", "Connect button clicked with value " + server_ip);
+
+            Main.this.clientThread = new Thread(new ClientThread());
+            Main.this.clientThread.start();
+            if (clientThread != null) {
+                is_client = true;
+            }
+            dialog.dismiss();
         }
     };
 
@@ -217,6 +253,22 @@ public class Main extends ActionBarActivity {
 
             if (!is_server) {
                 is_server = true;
+
+                // interrupt clientThread and close clientSocket
+                if (is_client) {
+                    clientThread.interrupt();
+                    if (clientSocket != null) {
+                        try {
+                            clientSocket.close();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    is_client = false;
+                }
+
+
+                // Start server
                 Log.i("TEST", "Set to server mode: true");
                 Main.this.serverThread = new Thread(new ServerThread());
                 Main.this.serverThread.start();
@@ -225,7 +277,7 @@ public class Main extends ActionBarActivity {
             } else {
                 is_server = false;
                 Log.i("TEST", "Set to server mode: false");
-                //TODO - figure out how to shutdown server mode (not important)
+
                 serverThread.interrupt();
                 try {
                     serverSocket.close();
@@ -241,6 +293,11 @@ public class Main extends ActionBarActivity {
         }
         if (id == R.id.button) {
             Log.i("BATGRID", "button pressed");
+
+            if (is_server) {
+                Toast.makeText(getBaseContext(), "Error: can't connect to servers while in Server Mode", Toast.LENGTH_SHORT).show();
+                return true;
+            }
             dialog = new Dialog(Main.this);
             dialog.setContentView(R.layout.dialog);
 
@@ -358,21 +415,39 @@ public class Main extends ActionBarActivity {
         @Override
         public void run() {
             Log.i("updateUIThread", msg);
-            //TODO - parse numbers from string and set id1 and id2
-            int id1 = 27;
-            int id2 = 15;
-            String ids = "From "+ id2 + " to " + id1;
 
-            ImageView target = targets[27];
-            ImageView dragged = targets[15];
+            StringTokenizer tokens = new StringTokenizer(msg, " ");
+            String cmd = tokens.nextToken();
 
-            Drawable target_draw = target.getDrawable();
-            Drawable dragged_draw = dragged.getDrawable();
+            switch (cmd){
 
-            Toast.makeText(getBaseContext(), ids, Toast.LENGTH_SHORT).show();
+                // Moves tokens around when server receives a client message
+                case "MOVE":
 
-            dragged.setImageDrawable(target_draw);
-            target.setImageDrawable(dragged_draw);
+                    int arg1 = Integer.parseInt(tokens.nextToken());
+                    int arg2 = Integer.parseInt(tokens.nextToken());
+                    String ids = "From "+ arg2 + " to " + arg1;
+
+                    ImageView target = targets[arg2];
+                    ImageView dragged = targets[arg1];
+
+                    Drawable target_draw = target.getDrawable();
+                    Drawable dragged_draw = dragged.getDrawable();
+
+                    Toast.makeText(getBaseContext(), ids, Toast.LENGTH_SHORT).show();
+
+                    dragged.setImageDrawable(target_draw);
+                    target.setImageDrawable(dragged_draw);
+
+                    //TODO - Broadcast move to all clients (except original message sender) (OPTIONAL)
+
+                    break;
+
+                // Didn't recognize command
+                default:
+                    Log.e("BATTLEGRID", "Malformed command: " + cmd);
+            }
+
         }
     }
 }
