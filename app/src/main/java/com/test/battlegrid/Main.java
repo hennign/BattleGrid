@@ -25,8 +25,11 @@ import android.widget.ImageView;
 import android.widget.Toast;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -37,6 +40,8 @@ import java.net.UnknownHostException;
 public class Main extends AppCompatActivity {
 
     private ImageView[] targets = new ImageView[45];
+
+
 
     public boolean is_server = false;
     public boolean is_client = false;
@@ -63,7 +68,6 @@ public class Main extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         updateConversationHandler = new Handler();
-
 
         GridLayout gridLayout = (GridLayout) findViewById(R.id.grid1);
 
@@ -137,6 +141,27 @@ public class Main extends AppCompatActivity {
 
     }
 
+    public void msgSend(String string) {
+
+        if (is_client) {
+
+            try {
+                String str = string;
+                PrintWriter out = new PrintWriter(new BufferedWriter(
+                        new OutputStreamWriter(clientSocket.getOutputStream())),
+                        true);
+                out.println(str);
+            } catch (UnknownHostException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+        }
+    }
+
     class ServerThread implements Runnable {
 
         public void run() {
@@ -164,17 +189,19 @@ public class Main extends AppCompatActivity {
 
     class CommunicationThread implements Runnable {
 
-        private Socket clientSocket;
+        private Socket cSocket;
 
         private BufferedReader input;
+        private BufferedWriter output;
 
-        public CommunicationThread(Socket clientSocket) {
+        public CommunicationThread(Socket cSocket) {
 
-            this.clientSocket = clientSocket;
+            this.cSocket = cSocket;
 
             try {
 
-                this.input = new BufferedReader(new InputStreamReader(this.clientSocket.getInputStream()));
+                this.input = new BufferedReader(new InputStreamReader(this.cSocket.getInputStream()));
+                this.output = new BufferedWriter(new OutputStreamWriter(this.cSocket.getOutputStream()));
 
             } catch (IOException e) {
                 e.printStackTrace();
@@ -194,6 +221,7 @@ public class Main extends AppCompatActivity {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
+
             }
         }
 
@@ -395,6 +423,9 @@ public class Main extends AppCompatActivity {
 
                     dragged.setImageDrawable(target_draw);
                     target.setImageDrawable(dragged_draw);
+
+                    String msg = "MOVE " + id2 + " " + id1;
+                    msgSend(msg);
 
                     break;
 
