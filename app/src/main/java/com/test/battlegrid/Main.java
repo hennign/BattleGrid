@@ -50,6 +50,8 @@ public class Main extends AppCompatActivity {
 
     private Socket clientSocket;
 
+    private Socket csSocket;
+
     Handler updateConversationHandler;
 
     Thread serverThread = null;
@@ -131,6 +133,9 @@ public class Main extends AppCompatActivity {
 
                 clientSocket = new Socket(serverAddr, SERVER_PORT);
 
+                CommunicationThread commThread = new CommunicationThread(clientSocket);
+                new Thread(commThread).start();
+
             } catch (UnknownHostException e1) {
                 e1.printStackTrace();
             } catch (IOException e1) {
@@ -159,6 +164,21 @@ public class Main extends AppCompatActivity {
                 e.printStackTrace();
             }
 
+        } else if (is_server) {
+
+            try {
+                String str = string;
+                PrintWriter out = new PrintWriter(new BufferedWriter(
+                        new OutputStreamWriter(csSocket.getOutputStream())),
+                        true);
+                out.println(str);
+            } catch (UnknownHostException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -177,6 +197,8 @@ public class Main extends AppCompatActivity {
 
                     socket = serverSocket.accept();
 
+                    csSocket = socket;
+
                     CommunicationThread commThread = new CommunicationThread(socket);
                     new Thread(commThread).start();
 
@@ -192,7 +214,6 @@ public class Main extends AppCompatActivity {
         private Socket cSocket;
 
         private BufferedReader input;
-        private BufferedWriter output;
 
         public CommunicationThread(Socket cSocket) {
 
@@ -201,7 +222,7 @@ public class Main extends AppCompatActivity {
             try {
 
                 this.input = new BufferedReader(new InputStreamReader(this.cSocket.getInputStream()));
-                this.output = new BufferedWriter(new OutputStreamWriter(this.cSocket.getOutputStream()));
+
 
             } catch (IOException e) {
                 e.printStackTrace();
@@ -457,7 +478,7 @@ public class Main extends AppCompatActivity {
 
                     int arg1 = Integer.parseInt(tokens.nextToken());
                     int arg2 = Integer.parseInt(tokens.nextToken());
-                    String ids = "From "+ arg2 + " to " + arg1;
+                    String ids = "From "+ arg1 + " to " + arg2;
 
                     ImageView target = targets[arg2];
                     ImageView dragged = targets[arg1];
@@ -469,8 +490,6 @@ public class Main extends AppCompatActivity {
 
                     dragged.setImageDrawable(target_draw);
                     target.setImageDrawable(dragged_draw);
-
-                    //TODO - Broadcast move to all clients (except original message sender) (OPTIONAL)
 
                     break;
 
